@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Worker Input</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+
+<body>
+
+<h2>Worker Health Input</h2>
+
+Temperature: <input type="number" id="temp"><br><br>
+Heart Rate: <input type="number" id="heart"><br><br>
+
+<button onclick="sendData()">Send Data</button>
+
+<script>
+
+// 🔴 Firebase Config
+var firebaseConfig = {
+  apiKey: "AIzaSyCIQrmNl9fhkJiyjqeeQJyDwnD8C9I2ds4",
+  authDomain: "labour-s---monitoring.firebaseapp.com",
+  databaseURL: "https://labour-s---monitoring-default-rtdb.firebaseio.com",
+  projectId: "labour-s---monitoring"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+
+// ✅ Send Temperature & Heart Rate
+function sendData(){
+  let temp = parseFloat(document.getElementById("temp").value);
+  let heart = parseFloat(document.getElementById("heart").value);
+
+  db.ref("labour").update({
+    temperature: temp,
+    heartbeat: heart
+  });
+
+  alert("Data Sent!");
+}
+
+// 📍 LIVE GPS (Automatic)
+function startTracking(){
+  if(navigator.geolocation){
+    navigator.geolocation.watchPosition(function(position){
+
+      let lat = position.coords.latitude;
+      let lon = position.coords.longitude;
+
+      db.ref("labour").update({
+        latitude: lat,
+        longitude: lon
+      });
+
+    });
+  } else {
+    alert("Geolocation not supported");
+  }
+}
+
+// 🔥 Start GPS automatically
+startTracking();
+
+</script>
+
+</body>
+</html>
