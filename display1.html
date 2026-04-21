@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Labour Monitoring Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body {
+  text-align: center;
+  font-family: Arial;
+}
+
+/* 🔥 FULL SCREEN FLASH */
+@keyframes flash {
+  0%   { background-color: red; }
+  50%  { background-color: white; }
+  100% { background-color: red; }
+}
+
+.flash {
+  animation: flash 0.3s infinite;
+  color: black;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Labour Monitoring Dashboard</h2>
+
+<button onclick="enableSound()">Enable Sound</button>
+
+<p>Temperature: <span id="temp">--</span></p>
+<p>Heart Rate: <span id="heart">--</span></p>
+<p>Location: <span id="location">--</span></p>
+
+<iframe id="map" width="300" height="200" style="border:1px solid black;"></iframe>
+
+<h3 id="alert"></h3>
+
+<!-- 🚨 SIREN -->
+<audio id="alarm" loop>
+  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
+</audio>
+
+<script>
+
+// 🔴 FIREBASE CONFIG
+var firebaseConfig = {
+  apiKey: "AIzaSyCIQrmNl9fhkJiyjqeeQJyDwnD8C9I2ds4",
+  authDomain: "labour-s---monitoring.firebaseapp.com",
+  databaseURL: "https://labour-s---monitoring-default-rtdb.firebaseio.com",
+  projectId: "labour-s---monitoring"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+
+let alarm = document.getElementById("alarm");
+
+// 🔊 Enable sound (for mobile)
+function enableSound(){
+  alarm.play();
+  alarm.pause();
+  alarm.currentTime = 0;
+}
+
+// 🔥 REAL-TIME DATA
+db.ref("labour").on("value", function(snapshot){
+
+  let val = snapshot.val();
+
+  if(val){
+
+    // Temp & Heart
+    document.getElementById("temp").innerText = val.temperature;
+    document.getElementById("heart").innerText = val.heartbeat;
+
+    // 📍 Location
+    if(val.latitude && val.longitude){
+      document.getElementById("location").innerText =
+        val.latitude + ", " + val.longitude;
+
+      let mapURL = "https://maps.google.com/maps?q=" +
+                   val.latitude + "," + val.longitude +
+                   "&output=embed";
+
+      document.getElementById("map").src = mapURL;
+    }
+
+    // 🚨 ALERT SYSTEM
+    if(val.temperature > 38 || val.heartbeat > 100){
+
+      document.getElementById("alert").innerText = "⚠ DANGER! WORKER UNSAFE";
+
+      // 🔥 FULL SCREEN BLINK
+      document.body.classList.add("flash");
+
+      alarm.play();
+
+    } else {
+
+      document.getElementById("alert").innerText = "✅ NORMAL";
+
+      // 🛑 STOP BLINK
+      document.body.classList.remove("flash");
+      document.body.style.backgroundColor = "white";
+
+      alarm.pause();
+      alarm.currentTime = 0;
+    }
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
